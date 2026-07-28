@@ -1,0 +1,41 @@
+JUPITER CONTEXT PRE-ALPHA DOWNLOAD SETUP
+=======================================
+
+The website now includes:
+- A "Download the Pre-Alpha for Windows" button in the hero area.
+- A polished password dialog.
+- SHA-256 password verification in script.js.
+- A download target at:
+  downloads/Jupiter-Context-Pre-Alpha-Windows.zip
+
+TEMPORARY ACCESS PASSWORD
+-------------------------
+JupiterAlpha2026!
+
+CHANGE THE INSTALLER
+--------------------
+Place your password-encrypted installer ZIP at this exact path:
+
+downloads/Jupiter-Context-Pre-Alpha-Windows.zip
+
+You can change the file name/path in script.js here:
+
+  filePath: 'downloads/Jupiter-Context-Pre-Alpha-Windows.zip'
+
+CHANGE THE WEBSITE PASSWORD
+---------------------------
+The browser compares a SHA-256 hash, not a plaintext password.
+To use a different password:
+
+1. Generate a SHA-256 hash for the new password.
+2. Open script.js.
+3. Replace the passwordSha256 value near the top.
+
+IMPORTANT SECURITY NOTE
+-----------------------
+GitHub Pages is a static public website. This password dialog blocks casual access,
+but it is not server-side authentication. The installer URL can still be discovered
+by someone inspecting the public repository or network requests.
+
+For meaningful protection, make the installer ZIP itself password encrypted using
+the same access password. Then the files remain protected even if someone finds the URL.
