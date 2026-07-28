@@ -1,5 +1,4 @@
 const PRE_ALPHA_DOWNLOAD = {
-  // Temporary password: JupiterAlpha2026!
   // Replace the hash before launch if you choose a different password.
   passwordSha256: 'a4ac687554c1d7c28b797a3ad919461adc1fc164bde70fc1627fad2420bb149a',
   filePath: 'downloads/Jupiter-Context-Pre-Alpha-Windows.zip'
