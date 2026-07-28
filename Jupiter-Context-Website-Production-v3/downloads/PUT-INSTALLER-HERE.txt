@@ -1,0 +1,5 @@
+Upload the real password-encrypted pre-alpha package into this folder and name it:
+
+Jupiter-Context-Pre-Alpha-Windows.zip
+
+The download button in script.js already points to that exact path.
