@@ -1,0 +1,1 @@
+Jupiter Context website revision V6. This revision tightens the spacing between the hero and Experience sections and between Control Center and Applications Become Capabilities. Upload the contents to the repository root and preserve the real installer in downloads/.
