@@ -1,0 +1,1 @@
+Jupiter Context website revision V4. Upload the contents of this folder to the repository root. Preserve your real downloads/Jupiter-Context-Pre-Alpha-Windows.zip installer. This revision uses the supplied sanitized Work, Personal, and Focus screenshots, removes the Notebook section, and reframes sign-in as a security feature.
