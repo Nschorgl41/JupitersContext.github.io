@@ -4,47 +4,47 @@ const PRE_ALPHA_DOWNLOAD = {
 };
 
 const header = document.querySelector('[data-header]');
+const menuButton = document.querySelector('[data-menu-button]');
 const nav = document.querySelector('[data-nav]');
-const navToggle = document.querySelector('[data-nav-toggle]');
 
-function updateHeader() {
+function syncHeader() {
   header?.classList.toggle('scrolled', window.scrollY > 18);
 }
 
-updateHeader();
-window.addEventListener('scroll', updateHeader, { passive: true });
+syncHeader();
+window.addEventListener('scroll', syncHeader, { passive: true });
 
-navToggle?.addEventListener('click', () => {
-  const open = nav?.classList.toggle('open');
-  navToggle.setAttribute('aria-expanded', String(Boolean(open)));
-  navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+menuButton?.addEventListener('click', () => {
+  const isOpen = nav?.classList.toggle('open') ?? false;
+  menuButton.setAttribute('aria-expanded', String(isOpen));
+  menuButton.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
 });
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', event => {
-    const targetId = anchor.getAttribute('href');
-    if (!targetId || targetId === '#') return;
-    const target = document.querySelector(targetId);
+    const id = anchor.getAttribute('href');
+    if (!id || id === '#') return;
+    const target = document.querySelector(id);
     if (!target) return;
     event.preventDefault();
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     nav?.classList.remove('open');
-    navToggle?.setAttribute('aria-expanded', 'false');
+    menuButton?.setAttribute('aria-expanded', 'false');
   });
 });
 
-const revealItems = document.querySelectorAll('.reveal');
+const revealItems = [...document.querySelectorAll('.reveal')];
 if ('IntersectionObserver' in window) {
-  const revealObserver = new IntersectionObserver(entries => {
+  const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-visible');
-      revealObserver.unobserve(entry.target);
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -35px' });
-  revealItems.forEach(item => revealObserver.observe(item));
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+  revealItems.forEach(item => observer.observe(item));
 } else {
-  revealItems.forEach(item => item.classList.add('is-visible'));
+  revealItems.forEach(item => item.classList.add('visible'));
 }
 
 const downloadDialog = document.getElementById('downloadDialog');
@@ -53,21 +53,26 @@ const passwordInput = document.getElementById('downloadPassword');
 const passwordToggle = document.getElementById('toggleDownloadPassword');
 const unlockButton = document.getElementById('unlockDownloadButton');
 const errorMessage = document.getElementById('downloadError');
+let previousFocus = null;
 
 function openDownloadDialog() {
-  if (!downloadDialog) return;
+  if (!downloadDialog || !passwordInput || !errorMessage) return;
+  previousFocus = document.activeElement;
   passwordInput.value = '';
+  passwordInput.type = 'password';
+  if (passwordToggle) passwordToggle.textContent = 'Show';
   errorMessage.textContent = '';
   errorMessage.className = 'download-error';
   downloadDialog.showModal();
   document.body.classList.add('dialog-open');
-  window.setTimeout(() => passwordInput.focus(), 60);
+  window.setTimeout(() => passwordInput.focus(), 40);
 }
 
 function closeDownloadDialog() {
   if (!downloadDialog?.open) return;
   downloadDialog.close();
   document.body.classList.remove('dialog-open');
+  if (previousFocus instanceof HTMLElement) previousFocus.focus();
 }
 
 document.querySelectorAll('[data-open-download]').forEach(button => button.addEventListener('click', openDownloadDialog));
@@ -76,25 +81,23 @@ document.querySelectorAll('[data-close-download]').forEach(button => button.addE
 downloadDialog?.addEventListener('click', event => {
   if (event.target === downloadDialog) closeDownloadDialog();
 });
-
 downloadDialog?.addEventListener('cancel', event => {
   event.preventDefault();
   closeDownloadDialog();
 });
 
 passwordToggle?.addEventListener('click', () => {
-  const showing = passwordInput.type === 'text';
-  passwordInput.type = showing ? 'password' : 'text';
-  passwordToggle.textContent = showing ? 'Show' : 'Hide';
+  if (!passwordInput) return;
+  const isVisible = passwordInput.type === 'text';
+  passwordInput.type = isVisible ? 'password' : 'text';
+  passwordToggle.textContent = isVisible ? 'Show' : 'Hide';
   passwordInput.focus();
 });
 
 async function sha256(value) {
-  const data = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(digest))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function startDownload() {
@@ -108,6 +111,7 @@ function startDownload() {
 
 downloadForm?.addEventListener('submit', async event => {
   event.preventDefault();
+  if (!passwordInput || !errorMessage || !unlockButton) return;
   const password = passwordInput.value;
   if (!password) {
     errorMessage.textContent = 'Enter the access password.';
@@ -124,21 +128,16 @@ downloadForm?.addEventListener('submit', async event => {
     const passwordHash = await sha256(password);
     if (passwordHash !== PRE_ALPHA_DOWNLOAD.passwordSha256) {
       errorMessage.textContent = 'That password is not correct.';
-      errorMessage.className = 'download-error shake';
       passwordInput.select();
-      window.setTimeout(() => errorMessage.classList.remove('shake'), 350);
       return;
     }
-
-    errorMessage.textContent = 'Access verified. Starting download…';
+    errorMessage.textContent = 'Access granted. Your download is starting.';
     errorMessage.className = 'download-error success';
-    window.setTimeout(() => {
-      startDownload();
-      closeDownloadDialog();
-    }, 450);
+    startDownload();
+    window.setTimeout(closeDownloadDialog, 850);
   } catch (error) {
-    console.error(error);
-    errorMessage.textContent = 'The browser could not verify the password. Try a current version of Edge, Chrome, or Firefox.';
+    console.error('Unable to verify the private preview password:', error);
+    errorMessage.textContent = 'The preview could not be unlocked. Please try again.';
   } finally {
     unlockButton.disabled = false;
     unlockButton.textContent = 'Unlock download';
